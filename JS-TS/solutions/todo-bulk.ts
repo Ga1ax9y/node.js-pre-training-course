@@ -1,13 +1,22 @@
 import { Todo, TodoStatus } from './types';
 
 export function toggleAll(state: Todo[], completed: boolean): Todo[] {
-  throw new Error('toggleAll: not implemented');
+  return state.map((todo)=> ({
+    ...todo,
+    status: completed ? TodoStatus.COMPLETED : TodoStatus.PENDING
+  }))
 }
 
 export function clearCompleted(state: Todo[]): Todo[] {
-  throw new Error('clearCompleted: not implemented');
+  return state.filter((todo)=>{
+    if (todo.status !== TodoStatus.COMPLETED){
+      return todo
+    }
+  })
 }
 
 export function countByStatus(state: Todo[], status: TodoStatus): number {
-  throw new Error('countByStatus: not implemented');
+  return state.reduce((acc, curr)=> {
+    return curr.status === status ? acc + 1 : acc
+  }, 0)
 }
