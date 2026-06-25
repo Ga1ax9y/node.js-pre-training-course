@@ -9,9 +9,7 @@ export function toggleAll(state: Todo[], completed: boolean): Todo[] {
 
 export function clearCompleted(state: Todo[]): Todo[] {
   return state.filter((todo)=>{
-    if (todo.status !== TodoStatus.COMPLETED){
-      return todo
-    }
+    todo.status !== TodoStatus.COMPLETED
   })
 }
 
