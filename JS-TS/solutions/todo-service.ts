@@ -8,10 +8,12 @@ export class TodoService {
     if (title.trim() === '') throw new Error('title is required');
     return this.api.add({ title, description });
   }
+  async getAll(): Promise<Todo[]> {
+    return this.api.getAll()
+  }
 
   async toggleStatus(id: number): Promise<Todo> {
     const todo = await this.api.getById(id);
-
     return this.api.update(id, { status: todo.status === TodoStatus.PENDING ? TodoStatus.COMPLETED : TodoStatus.PENDING });
   }
 
