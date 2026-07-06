@@ -63,4 +63,12 @@ code {
 .nav-menu a.active {
   color: #28a745;
   font-weight: bold;
-} 
+}
+
+.todo-completed{
+  color: #28a745;
+}
+
+.todo-not-completed{
+  color: red;
+}
