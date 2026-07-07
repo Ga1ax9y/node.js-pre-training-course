@@ -48,24 +48,34 @@ export const AddToDo: React.FC = () => {
 	// Example implementation:
 	const [inputValue, setInputValue] = useState("");
 	const [todos, setTodos] = useState<Todo[]>([]);
-  const [id, setId] = useState<number>(1)
+	const [id, setId] = useState<number>(1);
 
-  const submitForm = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault()
-    if (inputValue.trim() === '' || !inputValue){
-      return;
-    }
-    setTodos((prevTodos) => [...prevTodos, { id, title: inputValue.trim(), completed: false }]);
-    setId((prevId) => prevId + 1);
-    setInputValue('')
-  }
+	const submitForm = (e: React.FormEvent<HTMLFormElement>) => {
+		e.preventDefault();
+		if (inputValue.trim() === "" || !inputValue) {
+			return;
+		}
+		setTodos((prevTodos) => [
+			...prevTodos,
+			{ id, title: inputValue.trim(), completed: false },
+		]);
+		setId((prevId) => prevId + 1);
+		setInputValue("");
+	};
 	return (
 		<div>
 			<form onSubmit={submitForm}>
-        <input type="text" value={inputValue} placeholder="add todo" onChange={(e)=> {setInputValue(e.target.value)}}/>
-        <button type="submit">Add</button>
+				<input
+					type="text"
+					value={inputValue}
+					placeholder="add todo"
+					onChange={(e) => {
+						setInputValue(e.target.value);
+					}}
+				/>
+				<button type="submit">Add</button>
 			</form>
-      <ToDoList todos={todos} />
+			<ToDoList todos={todos}/>
 		</div>
 	);
 };

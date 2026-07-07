@@ -53,7 +53,6 @@ export const ToDoItem: React.FC<TodoItemProps> = ({ todo }) => {
 			) : (
 				<span className="todo-not-completed">not completed</span>
 			)}
-			)
 		</li>
 	);
 };

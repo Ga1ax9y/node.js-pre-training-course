@@ -46,7 +46,7 @@ export const ToDoList: React.FC<TodoListProps> = ({ todos }) => {
     <div>
       <ul>
         {todos.map((todo)=> {
-          return <li key={todo.id}>{todo.title} - {todo.completed? 'completed' : 'not completed'}</li>
+          return <li key={todo.id} >{todo.title} - {todo.completed? 'completed' : 'not completed'}</li>
         })}
       </ul>
     </div>
