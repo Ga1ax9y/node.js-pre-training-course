@@ -1,0 +1,18 @@
+{
+  "user": {
+    "id": 123,
+    "name": "John Doe",
+    "email": "john@example.com"
+  },
+  "preferences": {
+    "theme": "dark",
+    "language": "en",
+    "notifications": true
+  },
+  "activity": {
+    "lastLogin": "2025-01-01",
+    "sessionsCount": 42,
+    "totalTime": 3600
+  },
+  "processedAt": "2026-07-11T12:10:32.295Z"
+}
