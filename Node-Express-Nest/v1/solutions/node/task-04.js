@@ -13,20 +13,35 @@ const url = require("url");
  * @returns {Promise<Object>} Parsed JSON data
  */
 function parseBody(req) {
-  // TODO: Implement async JSON body parsing
-  // 1. Create promise to handle async data streaming
-  // 2. Listen for 'data' events to collect chunks
-  // 3. Listen for 'end' event to parse complete body
-  // 4. Handle JSON parsing errors gracefully
-  // 5. Return empty object if no body provided
+	// TODO: Implement async JSON body parsing
+	// 1. Create promise to handle async data streaming
+	// 2. Listen for 'data' events to collect chunks
+	// 3. Listen for 'end' event to parse complete body
+	// 4. Handle JSON parsing errors gracefully
+	// 5. Return empty object if no body provided
 
-  return new Promise((resolve, reject) => {
-    let body = "";
+	return new Promise((resolve, reject) => {
+		let body = "";
 
-    // Implementation goes here
-    console.log("Body parsing not implemented yet");
-    resolve({});
-  });
+		req.on("data", (chunk) => {
+			body += chunk.toString();
+		});
+
+		req.on("end", () => {
+			if (!body) {
+				return resolve({});
+			}
+			try {
+				resolve(JSON.parse(body));
+			} catch (err) {
+				reject(new Error("Invalid JSON body"));
+			}
+		});
+
+		req.on("error", (err) => {
+			reject(err);
+		});
+	});
 }
 
 /**
@@ -36,18 +51,28 @@ function parseBody(req) {
  * @returns {Object} Extracted parameters like { id: "123" }
  */
 function parsePathParams(pattern, path) {
-  // TODO: Implement path parameter extraction
-  // 1. Split pattern and path by '/'
-  // 2. Find segments that start with ':'
-  // 3. Extract corresponding values from path
-  // 4. Return object with parameter names and values
-  // 5. Handle edge cases (no params, mismatched segments)
+	// TODO: Implement path parameter extraction
+	// 1. Split pattern and path by '/'
+	// 2. Find segments that start with ':'
+	// 3. Extract corresponding values from path
+	// 4. Return object with parameter names and values
+	// 5. Handle edge cases (no params, mismatched segments)
 
-  const params = {};
+	const params = {};
 
-  // Implementation goes here
-  console.log("Path params parsing not implemented yet");
-  return params;
+	const patternSegments = pattern.split("/");
+	const pathSegments = path.split("/");
+
+	if (patternSegments.length !== pathSegments.length) return params;
+
+	for (let i = 0; i < patternSegments.length; i++) {
+		if (patternSegments[i].startsWith(":")) {
+			const paramName = patternSegments[i].slice(1);
+			params[paramName] = pathSegments[i];
+		}
+	}
+
+	return params;
 }
 
 /**
@@ -57,21 +82,26 @@ function parsePathParams(pattern, path) {
  * @param {Object} data - Response data
  */
 function sendResponse(res, statusCode, data) {
-  // TODO: Implement consistent response sending
-  // 1. Set proper HTTP status code
-  // 2. Set Content-Type to application/json
-  // 3. Add CORS headers for browser compatibility
-  // 4. Convert data to JSON string
-  // 5. Send response and end connection
+	// TODO: Implement consistent response sending
+	// 1. Set proper HTTP status code
+	// 2. Set Content-Type to application/json
+	// 3. Add CORS headers for browser compatibility
+	// 4. Convert data to JSON string
+	// 5. Send response and end connection
 
-  // Headers to set:
-  // - Content-Type: application/json
-  // - Access-Control-Allow-Origin: *
-  // - Access-Control-Allow-Methods: GET, POST, PUT, DELETE
-  // - Access-Control-Allow-Headers: Content-Type
+	// Headers to set:
+	// - Content-Type: application/json
+	// - Access-Control-Allow-Origin: *
+	// - Access-Control-Allow-Methods: GET, POST, PUT, DELETE
+	// - Access-Control-Allow-Headers: Content-Type
 
-  console.log("Response sending not implemented yet");
-  res.end();
+	res.writeHead(statusCode, {
+		"Content-Type": "application/json",
+		"Access-Control-Allow-Origin": "*",
+		"Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
+		"Access-Control-Allow-Headers": "Content-Type",
+	});
+	res.end(JSON.stringify(data));
 }
 
 /**
@@ -81,311 +111,451 @@ function sendResponse(res, statusCode, data) {
  * @returns {Object} Validation result with errors array
  */
 function validateTodo(todoData, isUpdate = false) {
-  // TODO: Implement todo data validation
-  // 1. Check title requirements (required, string, 1-100 chars, not whitespace-only)
-  // 2. Check description (optional, string, max 500 chars)
-  // 3. Check completed (optional, boolean only)
-  // 4. Return validation result with errors array
-  // 5. Handle update vs create validation differences
+	// TODO: Implement todo data validation
+	// 1. Check title requirements (required, string, 1-100 chars, not whitespace-only)
+	// 2. Check description (optional, string, max 500 chars)
+	// 3. Check completed (optional, boolean only)
+	// 4. Return validation result with errors array
+	// 5. Handle update vs create validation differences
 
-  const errors = [];
+	const errors = [];
 
-  // Title validation
-  // - Required for create, optional for update
-  // - Must be string
-  // - 1-100 characters
-  // - Cannot be only whitespace
+	if (!isUpdate || todoData.hasOwnProperty("title")) {
+		const title = todoData.title;
+		if (typeof title !== "string" || title.trim().length === 0) {
+			errors.push("Title is required and must be a non-empty string");
+		} else if (title.length > 100) {
+			errors.push("Title cannot exceed 100 characters");
+		}
+	}
 
-  // Description validation
-  // - Optional field
-  // - Must be string if provided
-  // - Max 500 characters
+	if (
+		todoData.hasOwnProperty("description") &&
+		todoData.description !== null
+	) {
+		if (typeof todoData.description !== "string") {
+			errors.push("Description must be a string");
+		} else if (todoData.description.length > 500) {
+			errors.push("Description cannot exceed 500 characters");
+		}
+	}
 
-  // Completed validation
-  // - Optional field
-  // - Must be boolean if provided
+	if (todoData.hasOwnProperty("completed")) {
+		if (typeof todoData.completed !== "boolean") {
+			errors.push("Completed must be a boolean value");
+		}
+	}
 
-  console.log("Todo validation not implemented yet");
-  return { isValid: true, errors };
+	// Title validation
+	// - Required for create, optional for update
+	// - Must be string
+	// - 1-100 characters
+	// - Cannot be only whitespace
+
+	// Description validation
+	// - Optional field
+	// - Must be string if provided
+	// - Max 500 characters
+
+	// Completed validation
+	// - Optional field
+	// - Must be boolean if provided
+
+	return { isValid: errors.length === 0, errors };
 }
 
 /**
  * TodoServer Class - Main HTTP server for Todo API
  */
 class TodoServer {
-  constructor(port = 3000) {
-    // TODO: Initialize server properties
-    // 1. Set port number
-    // 2. Initialize empty todos array
-    // 3. Set nextId counter for new todos
-    // 4. Initialize with sample data
+	constructor(port = 3000) {
+		// TODO: Initialize server properties
+		// 1. Set port number
+		// 2. Initialize empty todos array
+		// 3. Set nextId counter for new todos
+		// 4. Initialize with sample data
 
-    this.port = port;
-    this.todos = [];
-    this.nextId = 1;
+		this.port = port;
+		this.todos = [];
+		this.nextId = 1;
+		this.server = null;
 
-    // Sample todos for testing
-    this.initializeSampleData();
-  }
+		// Sample todos for testing
+		this.initializeSampleData();
+	}
 
-  /**
-   * Initialize server with sample todo data
-   */
-  initializeSampleData() {
-    // TODO: Add sample todos for testing
-    // 1. Create 2-3 sample todos with proper structure
-    // 2. Include variety: completed/incomplete, different dates
-    // 3. Set proper id sequence for new todos
+	/**
+	 * Initialize server with sample todo data
+	 */
+	initializeSampleData() {
+		// TODO: Add sample todos for testing
+		// 1. Create 2-3 sample todos with proper structure
+		// 2. Include variety: completed/incomplete, different dates
+		// 3. Set proper id sequence for new todos
 
-    const sampleTodos = [
-      // Add sample todos here
-    ];
+		const sampleTodos = [
+			{
+				id: this.generateNextId(),
+				title: "first task",
+				description: "task description",
+				completed: false,
+				createdAt: new Date(),
+				updatedAt: new Date(),
+			},
+			{
+				id: this.generateNextId(),
+				title: "Second task",
+				description: "task description",
+				completed: false,
+				createdAt: new Date(),
+				updatedAt: new Date(),
+			},
+		];
 
-    console.log("Sample data initialization not implemented yet");
-  }
+    this.todos = [...this.todos, ...sampleTodos];
+	}
 
-  /**
-   * Start the HTTP server
-   */
-  start() {
-    // TODO: Create and start HTTP server
-    // 1. Create HTTP server with request handler
-    // 2. Listen on specified port
-    // 3. Log server startup message
-    // 4. Handle server errors
+	/**
+	 * Start the HTTP server
+	 */
+	start() {
+		// TODO: Create and start HTTP server
+		// 1. Create HTTP server with request handler
+		// 2. Listen on specified port
+		// 3. Log server startup message
+		// 4. Handle server errors
+		this.server = http.createServer((req, res) => {
+			this.handleRequest(req, res);
+		});
 
-    console.log("Server start not implemented yet");
-  }
+		this.server.listen(this.port, () => {
+			console.log(
+				`Todo REST API Server is running on http://localhost:${this.port}`,
+			);
+		});
 
-  /**
-   * Main request handler - routes requests to appropriate methods
-   * @param {IncomingMessage} req - HTTP request
-   * @param {ServerResponse} res - HTTP response
-   */
-  async handleRequest(req, res) {
-    // TODO: Implement main request routing
-    // 1. Parse URL and extract pathname, query
-    // 2. Route based on HTTP method and path pattern
-    // 3. Handle CORS preflight requests (OPTIONS)
-    // 4. Call appropriate handler method
-    // 5. Handle unknown routes with 404
+		this.server.on("error", (error) => {
+			console.error("Server execution error:", error.message);
+		});
+	}
 
-    try {
-      const parsedUrl = url.parse(req.url, true);
-      const { pathname, query } = parsedUrl;
-      const method = req.method;
+	/**
+	 * Main request handler - routes requests to appropriate methods
+	 * @param {IncomingMessage} req - HTTP request
+	 * @param {ServerResponse} res - HTTP response
+	 */
+	async handleRequest(req, res) {
+		// TODO: Implement main request routing
+		// 1. Parse URL and extract pathname, query
+		// 2. Route based on HTTP method and path pattern
+		// 3. Handle CORS preflight requests (OPTIONS)
+		// 4. Call appropriate handler method
+		// 5. Handle unknown routes with 404
 
-      console.log(
-        `${method} ${pathname} - Request handling not implemented yet`
-      );
+		try {
+			const parsedUrl = url.parse(req.url, true);
+			const { pathname, query } = parsedUrl;
+			const method = req.method;
 
-      // Route to appropriate handler based on method and path
-      // GET /todos -> getAllTodos
-      // GET /todos/:id -> getTodoById
-      // POST /todos -> createTodo
-      // PUT /todos/:id -> updateTodo
-      // DELETE /todos/:id -> deleteTodo
-      // OPTIONS -> handleCORS
+			if (method === "OPTIONS") {
+				return this.handleCORS(req, res);
+			}
 
-      sendResponse(res, 501, {
-        success: false,
-        error: "Request handling not implemented yet",
-      });
-    } catch (error) {
-      console.error("Request handling error:", error);
-      sendResponse(res, 500, {
-        success: false,
-        error: "Internal server error",
-      });
-    }
-  }
+			if (method === "GET" && pathname === "/todos") {
+				return await this.getAllTodos(req, res, query);
+			}
 
-  /**
-   * Handle GET /todos - Get all todos with optional filtering
-   * @param {IncomingMessage} req - HTTP request
-   * @param {ServerResponse} res - HTTP response
-   * @param {Object} query - URL query parameters
-   */
-  async getAllTodos(req, res, query) {
-    // TODO: Implement get all todos with filtering
-    // 1. Get all todos from storage
-    // 2. Apply completed filter if provided in query
-    // 3. Return success response with data and count
-    // 4. Handle query parameter validation
+			if (method === "GET" && pathname.startsWith("/todos/")) {
+				const params = parsePathParams("/todos/:id", pathname);
+				return await this.getTodoById(req, res, params);
+			}
 
-    console.log("Get all todos not implemented yet");
-    sendResponse(res, 501, {
-      success: false,
-      error: "Get all todos not implemented yet",
-    });
-  }
+			if (method === "POST" && pathname === "/todos") {
+				return await this.createTodo(req, res);
+			}
 
-  /**
-   * Handle GET /todos/:id - Get specific todo by ID
-   * @param {IncomingMessage} req - HTTP request
-   * @param {ServerResponse} res - HTTP response
-   * @param {Object} params - Path parameters
-   */
-  async getTodoById(req, res, params) {
-    // TODO: Implement get todo by ID
-    // 1. Extract ID from path parameters
-    // 2. Find todo in storage
-    // 3. Return 404 if not found
-    // 4. Return success response with todo data
-    // 5. Handle invalid ID format
+			if (method === "PUT" && pathname.startsWith("/todos/")) {
+				const params = parsePathParams("/todos/:id", pathname);
+				return await this.updateTodo(req, res, params);
+			}
 
-    console.log("Get todo by ID not implemented yet");
-    sendResponse(res, 501, {
-      success: false,
-      error: "Get todo by ID not implemented yet",
-    });
-  }
+			if (method === "DELETE" && pathname.startsWith("/todos/")) {
+				const params = parsePathParams("/todos/:id", pathname);
+				return await this.deleteTodo(req, res, params);
+			}
 
-  /**
-   * Handle POST /todos - Create new todo
-   * @param {IncomingMessage} req - HTTP request
-   * @param {ServerResponse} res - HTTP response
-   */
-  async createTodo(req, res) {
-    // TODO: Implement create new todo
-    // 1. Parse request body
-    // 2. Validate todo data
-    // 3. Create new todo with generated ID and timestamps
-    // 4. Add to storage
-    // 5. Return 201 with created todo
-    // 6. Handle validation errors
+			sendResponse(res, 404, {
+				success: false,
+				error: "Route not found",
+			});
 
-    console.log("Create todo not implemented yet");
-    sendResponse(res, 501, {
-      success: false,
-      error: "Create todo not implemented yet",
-    });
-  }
+			// Route to appropriate handler based on method and path
+			// GET /todos -> getAllTodos
+			// GET /todos/:id -> getTodoById
+			// POST /todos -> createTodo
+			// PUT /todos/:id -> updateTodo
+			// DELETE /todos/:id -> deleteTodo
+			// OPTIONS -> handleCORS
+		} catch (error) {
+			console.error("Request handling error:", error);
+			sendResponse(res, 500, {
+				success: false,
+				error: "Internal server error",
+			});
+		}
+	}
 
-  /**
-   * Handle PUT /todos/:id - Update existing todo
-   * @param {IncomingMessage} req - HTTP request
-   * @param {ServerResponse} res - HTTP response
-   * @param {Object} params - Path parameters
-   */
-  async updateTodo(req, res, params) {
-    // TODO: Implement update existing todo
-    // 1. Extract ID from path parameters
-    // 2. Find existing todo
-    // 3. Parse request body
-    // 4. Validate update data
-    // 5. Merge changes with existing todo
-    // 6. Update timestamp
-    // 7. Return updated todo
-    // 8. Handle not found and validation errors
+	/**
+	 * Handle GET /todos - Get all todos with optional filtering
+	 * @param {IncomingMessage} req - HTTP request
+	 * @param {ServerResponse} res - HTTP response
+	 * @param {Object} query - URL query parameters
+	 */
+	async getAllTodos(req, res, query) {
+		// TODO: Implement get all todos with filtering
+		// 1. Get all todos from storage
+		// 2. Apply completed filter if provided in query
+		// 3. Return success response with data and count
+		// 4. Handle query parameter validation
 
-    console.log("Update todo not implemented yet");
-    sendResponse(res, 501, {
-      success: false,
-      error: "Update todo not implemented yet",
-    });
-  }
+		let filteredTodos = [...this.todos];
 
-  /**
-   * Handle DELETE /todos/:id - Delete todo
-   * @param {IncomingMessage} req - HTTP request
-   * @param {ServerResponse} res - HTTP response
-   * @param {Object} params - Path parameters
-   */
-  async deleteTodo(req, res, params) {
-    // TODO: Implement delete todo
-    // 1. Extract ID from path parameters
-    // 2. Find todo index in storage
-    // 3. Return 404 if not found
-    // 4. Remove from storage
-    // 5. Return success message
-    // 6. Handle invalid ID format
+		if (query.completed !== undefined) {
+			const isCompleted = query.completed === "true";
+			filteredTodos = filteredTodos.filter(
+				(t) => t.completed === isCompleted,
+			);
+		}
+		sendResponse(res, 200, {
+			success: true,
+			count: filteredTodos.length,
+			data: filteredTodos,
+		});
+	}
 
-    console.log("Delete todo not implemented yet");
-    sendResponse(res, 501, {
-      success: false,
-      error: "Delete todo not implemented yet",
-    });
-  }
+	/**
+	 * Handle GET /todos/:id - Get specific todo by ID
+	 * @param {IncomingMessage} req - HTTP request
+	 * @param {ServerResponse} res - HTTP response
+	 * @param {Object} params - Path parameters
+	 */
+	async getTodoById(req, res, params) {
+		// TODO: Implement get todo by ID
+		// 1. Extract ID from path parameters
+		// 2. Find todo in storage
+		// 3. Return 404 if not found
+		// 4. Return success response with todo data
+		// 5. Handle invalid ID format
 
-  /**
-   * Handle CORS preflight requests
-   * @param {IncomingMessage} req - HTTP request
-   * @param {ServerResponse} res - HTTP response
-   */
-  handleCORS(req, res) {
-    // TODO: Implement CORS preflight handling
-    // 1. Set CORS headers
-    // 2. Return 204 No Content
-    // 3. Handle preflight request properly
+		const todo = this.findTodoById(params.id);
+		if (!todo) {
+			return sendResponse(res, 404, {
+				success: false,
+				error: "Todo item not found",
+			});
+		}
+		sendResponse(res, 200, { success: true, data: todo });
+	}
 
-    console.log("CORS handling not implemented yet");
-    sendResponse(res, 204, {});
-  }
+	/**
+	 * Handle POST /todos - Create new todo
+	 * @param {IncomingMessage} req - HTTP request
+	 * @param {ServerResponse} res - HTTP response
+	 */
+	async createTodo(req, res) {
+		// TODO: Implement create new todo
+		// 1. Parse request body
+		// 2. Validate todo data
+		// 3. Create new todo with generated ID and timestamps
+		// 4. Add to storage
+		// 5. Return 201 with created todo
+		// 6. Handle validation errors
 
-  /**
-   * Find todo by ID in storage
-   * @param {number|string} id - Todo ID
-   * @returns {Object|null} Found todo or null
-   */
-  findTodoById(id) {
-    // TODO: Implement find todo by ID
-    // 1. Convert ID to number
-    // 2. Search in todos array
-    // 3. Return found todo or null
-    // 4. Handle invalid ID format
+		try {
+			const body = await parseBody(req);
+			const validation = validateTodo(body, false);
 
-    const numId = parseInt(id, 10);
-    return null; // Placeholder
-  }
+			if (!validation.isValid) {
+				return sendResponse(res, 400, {
+					success: false,
+					errors: validation.errors,
+				});
+			}
 
-  /**
-   * Find todo index by ID in storage
-   * @param {number|string} id - Todo ID
-   * @returns {number} Todo index or -1 if not found
-   */
-  findTodoIndexById(id) {
-    // TODO: Implement find todo index by ID
-    // 1. Convert ID to number
-    // 2. Find index in todos array
-    // 3. Return index or -1 if not found
+			const newTodo = {
+				id: this.generateNextId(),
+				title: body.title.trim(),
+				description: body.description ? body.description.trim() : null,
+				completed: body.completed || false,
+				createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+			};
 
-    const numId = parseInt(id, 10);
-    return -1; // Placeholder
-  }
+			this.todos.push(newTodo);
+			sendResponse(res, 201, { success: true, data: newTodo });
+		} catch (err) {
+			sendResponse(res, 400, { success: false, error: err.message });
+		}
+	}
 
-  /**
-   * Generate next available ID
-   * @returns {number} Next ID
-   */
-  generateNextId() {
-    // TODO: Implement ID generation
-    // 1. Return current nextId
-    // 2. Increment nextId for next use
-    // 3. Handle edge cases
+	/**
+	 * Handle PUT /todos/:id - Update existing todo
+	 * @param {IncomingMessage} req - HTTP request
+	 * @param {ServerResponse} res - HTTP response
+	 * @param {Object} params - Path parameters
+	 */
+	async updateTodo(req, res, params) {
+		// TODO: Implement update existing todo
+		// 1. Extract ID from path parameters
+		// 2. Find existing todo
+		// 3. Parse request body
+		// 4. Validate update data
+		// 5. Merge changes with existing todo
+		// 6. Update timestamp
+		// 7. Return updated todo
+		// 8. Handle not found and validation errors
 
-    return this.nextId++;
-  }
+		const todo = this.findTodoById(params.id);
+		if (!todo) {
+			return sendResponse(res, 404, {
+				success: false,
+				error: "Todo item not found",
+			});
+		}
+
+		try {
+			const body = await parseBody(req);
+			const validation = validateTodo(body, true);
+
+			if (!validation.isValid) {
+				return sendResponse(res, 400, {
+					success: false,
+					errors: validation.errors,
+				});
+			}
+
+			if (body.hasOwnProperty("title")) todo.title = body.title.trim();
+			if (body.hasOwnProperty("description"))
+				todo.description = body.description
+					? body.description.trim()
+					: null;
+			if (body.hasOwnProperty("completed"))
+				todo.completed = body.completed;
+			todo.updatedAt = new Date().toISOString();
+
+			sendResponse(res, 200, { success: true, data: todo });
+		} catch (err) {
+			sendResponse(res, 400, { success: false, error: err.message });
+		}
+	}
+
+	/**
+	 * Handle DELETE /todos/:id - Delete todo
+	 * @param {IncomingMessage} req - HTTP request
+	 * @param {ServerResponse} res - HTTP response
+	 * @param {Object} params - Path parameters
+	 */
+	async deleteTodo(req, res, params) {
+		// TODO: Implement delete todo
+		// 1. Extract ID from path parameters
+		// 2. Find todo index in storage
+		// 3. Return 404 if not found
+		// 4. Remove from storage
+		// 5. Return success message
+		// 6. Handle invalid ID format
+
+		const index = this.findTodoIndexById(params.id);
+		if (index === -1) {
+			return sendResponse(res, 404, {
+				success: false,
+				error: "Todo item not found",
+			});
+		}
+
+		this.todos.splice(index, 1);
+		sendResponse(res, 200, {
+			success: true,
+			message: "Todo item deleted successfully",
+		});
+	}
+
+	/**
+	 * Handle CORS preflight requests
+	 * @param {IncomingMessage} req - HTTP request
+	 * @param {ServerResponse} res - HTTP response
+	 */
+	handleCORS(req, res) {
+		// TODO: Implement CORS preflight handling
+		// 1. Set CORS headers
+		// 2. Return 204 No Content
+		// 3. Handle preflight request properly
+
+		sendResponse(res, 204, {});
+	}
+
+	/**
+	 * Find todo by ID in storage
+	 * @param {number|string} id - Todo ID
+	 * @returns {Object|null} Found todo or null
+	 */
+	findTodoById(id) {
+		// TODO: Implement find todo by ID
+		// 1. Convert ID to number
+		// 2. Search in todos array
+		// 3. Return found todo or null
+		// 4. Handle invalid ID format
+
+		const numId = parseInt(id, 10);
+		return this.todos.find((t) => t.id === numId) || null;
+	}
+
+	/**
+	 * Find todo index by ID in storage
+	 * @param {number|string} id - Todo ID
+	 * @returns {number} Todo index or -1 if not found
+	 */
+	findTodoIndexById(id) {
+		// TODO: Implement find todo index by ID
+		// 1. Convert ID to number
+		// 2. Find index in todos array
+		// 3. Return index or -1 if not found
+
+		const numId = parseInt(id, 10);
+		return this.todos.findIndex((t) => t.id === numId);
+	}
+
+	/**
+	 * Generate next available ID
+	 * @returns {number} Next ID
+	 */
+	generateNextId() {
+		// TODO: Implement ID generation
+		// 1. Return current nextId
+		// 2. Increment nextId for next use
+		// 3. Handle edge cases
+
+		return this.nextId++;
+	}
 }
 
 // Export the TodoServer class
 module.exports = TodoServer;
 
 // Example usage (for testing):
-const isReadyToTest = false;
+const isReadyToTest = true;
 
 if (isReadyToTest) {
-  // Start server for testing
-  const server = new TodoServer(3000);
-  server.start();
+	// Start server for testing
+	const server = new TodoServer(3000);
+	server.start();
 
-  console.log("🚀 Todo Server starting...");
-  console.log("📝 Replace TODO comments with implementation");
-  console.log("🧪 Run task-04-test.js to verify functionality");
+	console.log("🚀 Todo Server starting...");
+	console.log("📝 Replace TODO comments with implementation");
+	console.log("🧪 Run task-04-test.js to verify functionality");
 }
 
 // If this file is run directly, start the server
 if (require.main === module) {
-  const server = new TodoServer(3000);
-  server.start();
+	const server = new TodoServer(3001);
+	server.start();
 }
