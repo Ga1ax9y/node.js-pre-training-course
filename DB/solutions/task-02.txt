@@ -1,0 +1,18 @@
+INSERT INTO TODOS(title, description, status)
+	VALUES ('Homework', 'Math p.54', 'active' )
+
+SELECT * FROM TODOS
+
+UPDATE TODOS
+SET description = 'Math p.55'
+WHERE ID=1
+
+UPDATE TODOS
+SET status = 'completed'
+WHERE ID=1
+
+INSERT INTO TODOS(title, description, status)
+	VALUES ('Homework', 'English p.54', 'completed' )
+
+DELETE FROM TODOS
+WHERE ID=2

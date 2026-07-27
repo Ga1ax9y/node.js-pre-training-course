@@ -1,0 +1,11 @@
+SELECT * FROM TODOS
+	WHERE status='active'
+
+SELECT * FROM TODOS
+	ORDER BY created_at ASC
+
+SELECT * FROM TODOS
+	ORDER BY created_at DESC
+
+SELECT * FROM TODOS
+	WHERE title ILIKE '%meeting%' or description ILIKE '%meeting%';

@@ -1,0 +1,4 @@
+CREATE INDEX idx_todos_status ON todos (status);
+
+EXPLAIN ANALYZE
+SELECT * FROM todos WHERE status = 'active';
