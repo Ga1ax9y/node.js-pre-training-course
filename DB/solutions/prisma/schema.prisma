@@ -1,0 +1,31 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id        Int       @id @default(autoincrement())
+  name      String
+  email     String    @unique
+  createdAt DateTime? @default(now()) @map("created_at") @db.Timestamp(6)
+  todos     Todo[]
+
+  @@map("users")
+}
+
+model Todo {
+  id          Int       @id @default(autoincrement())
+  title       String
+  description String?
+  status      String?
+  createdAt   DateTime? @default(now()) @map("created_at") @db.Timestamp(6)
+  userId      Int?      @map("user_id")
+  user        User?     @relation(fields: [userId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_todos_user")
+
+  @@index([status], map: "idx_todos_status")
+  @@map("todos")
+}

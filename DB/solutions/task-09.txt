@@ -1,0 +1,22 @@
+CREATE TABLE audit_log (
+    id SERIAL PRIMARY KEY,
+    todo_id INTEGER NOT NULL,
+    action TEXT NOT NULL,
+    changed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE OR REPLACE FUNCTION log_todo_changes()
+RETURNS TRIGGER AS $$
+BEGIN
+
+    INSERT INTO audit_log (todo_id, action, changed_at)
+    VALUES (OLD.id, TG_OP, CURRENT_TIMESTAMP);
+
+    RETURN OLD;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER trigger_audit_todo_changes
+AFTER UPDATE OR DELETE ON todos
+FOR EACH ROW
+EXECUTE FUNCTION log_todo_changes();

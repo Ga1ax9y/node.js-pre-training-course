@@ -31,4 +31,8 @@ yarn-debug.log*
 yarn-error.log*
 
 # Ignore local env files
-.env.* 
+.env.*
+.agents
+.claude
+.windsurf
+skills-lock.json
