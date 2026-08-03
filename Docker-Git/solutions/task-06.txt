@@ -1,0 +1,64 @@
+git switch -c feature/user-authentication main
+git add auth.js
+git commit -m "Add authentication module"
+git add package.json
+git commit -m "Update package.json with auth script"
+git add package.json
+git commit -m "Fix typo in auth script"
+git add middleware/authMiddleware.js
+git commit -m "Add authentication middleware"
+git add tests/auth.test.js
+git commit -m "Add basic authentication tests"
+git log --oneline main..feature/user-authentication:
+    ff4a6c4 (HEAD -> feature/user-authentication) Add basic authentication tests
+    9e4b66c Add authentication middleware
+    6296b2a Fix typo in auth script
+    f87adbe Update package.json with auth script
+    e0e1c55 Add authentication module
+git rebase -i HEAD~5:
+    [detached HEAD 9d3db85] Add login function for user authentication
+    Date: Mon Aug 3 19:23:30 2026 +0300
+    1 file changed, 5 insertions(+)
+    create mode 100644 auth.js
+    [detached HEAD f3720a3] Update package.json with authentication script
+    Date: Mon Aug 3 19:24:02 2026 +0300
+    1 file changed, 6 insertions(+), 6 deletions(-)
+    [detached HEAD 476bee6] Add middleware to protect authenticated routes
+    Date: Mon Aug 3 19:25:56 2026 +0300
+    1 file changed, 9 insertions(+)
+    create mode 100644 middleware/authMiddleware.js
+    [detached HEAD 551a716] Add basic tests for authentication
+    Date: Mon Aug 3 19:26:56 2026 +0300
+    1 file changed, 7 insertions(+)
+    create mode 100644 tests/auth.test.js
+    Successfully rebased and updated refs/heads/feature/user-authentication.
+git log --oneline main..feature/user-authentication:
+    476bee6 Add middleware to protect authenticated routes
+    f3720a3 Update package.json with authentication script
+    9d3db85 Add login function for user authentication
+git switch main
+git log --oneline:
+    50f1f14 (HEAD -> main) add CONTRIBUTING.md
+    a3ff80d add task5
+    a6c7f8b Merge feature/update-readme-v2 and combine README titles
+git switch -c test/merge-comparison main
+git merge --no-ff feature/user-authentication -m "Merge feature/user-authentication for comparison"
+git log --oneline --graph --decorate test/merge-comparison:
+    *   28b2d87 (HEAD -> test/merge-comparison) Merge feature/user-authentication for comparison
+    |\
+    | * 551a716 (feature/user-authentication) Add basic tests for authentication
+    | * 476bee6 Add middleware to protect authenticated routes
+    | * f3720a3 Update package.json with authentication script
+    | * 9d3db85 Add login function for user authentication
+    * | 50f1f14 (main) add CONTRIBUTING.md
+    |/
+git switch feature/user-authentication
+git rebase main:
+    Successfully rebased and updated refs/heads/feature/user-authentication.
+git log --oneline --graph --decorate feature/user-authentication:
+    * 1192cf7 (HEAD -> feature/user-authentication) Add basic tests for authentication
+    * ec381b5 Add middleware to protect authenticated routes
+    * 769936c Update package.json with authentication script
+    * dada206 Add login function for user authentication
+    * 50f1f14 (main) add CONTRIBUTING.md
+git branch -D test/merge-comparison

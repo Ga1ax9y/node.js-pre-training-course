@@ -1,0 +1,51 @@
+git init --bare company.git
+git init --bare fork.git
+git clone company.git workspace
+cd workspace
+echo "# Company Project" > README.md
+git add README.md
+git commit -m "Initial commit"
+git remote rename origin upstream
+git remote add origin ../fork.git
+git remote -v
+git push -u upstream main
+git push -u origin main
+git switch -c feature/user-profile main
+mkdir -p src
+git add src/userProfile.js
+git commit -m "Add user profile storage module"
+git add src/server.js
+git commit -m "Add HTTP endpoint for user profile"
+git push -u origin feature/user-profile
+git log --oneline upstream/main..feature/user-profile:
+    657f47e (HEAD -> feature/user-profile, origin/feature/user-profile) Add basic validation for profile id
+    6930a54 Add HTTP endpoint for user profile
+    1c062fc Add user profile storage module
+git add src/userProfile.js
+git commit -m "Add email validation helper based on review feedback"
+git rebase -i HEAD~4
+git log --oneline upstream/main..feature/user-profile:
+    241e7fe (HEAD -> feature/user-profile) Add validation for profile id and email format
+    6930a54 Add HTTP endpoint for user profile
+    1c062fc Add user profile storage module
+git push origin feature/user-profile --force-with-lease
+git switch main
+git pull --ff-only upstream main
+git add README.md
+git commit -m "Add team guidelines to README"
+git push upstream main
+git push origin main
+git switch feature/user-profile
+git fetch upstream
+git rebase upstream/main
+git switch main
+git pull --ff-only upstream main
+git merge --no-ff
+git switch main
+git pull --ff-only upstream main
+git merge --no-ff feature/user-profile -m "Merge pull request #1: Add user profile feature"
+git push upstream main
+git push origin main
+git log --oneline --graph --decorate main
+git branch -D feature/user-profile
+git push origin --delete feature/user-profile

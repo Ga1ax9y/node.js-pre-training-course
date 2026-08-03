@@ -1,0 +1,83 @@
+docker pull nginx:alpine
+docker pull redis:7-alpine
+docker pull node:24-alpine
+docker images
+docker image inspect nginx:alpine
+docker image inspect nginx:alpine --format "ID: {{.Id}}
+Architecture: {{.Architecture}}
+OS: {{.Os}}
+Created: {{.Created}}
+Size: {{.Size}} bytes"
+docker tag nginx:alpine my-nginx:v1
+docker images nginx
+docker images my-nginx
+docker save -o nginx-alpine.tar nginx:alpine
+docker rmi nginx:alpine my-nginx:v1
+docker load -i nginx-alpine.tar
+docker tag nginx:alpine my-nginx:v1
+docker images
+docker network create task09-network
+docker network ls
+docker network inspect task09-network
+docker run -d --name my-nginx --network task09-network -p 8080:80 nginx:alpine
+docker ps
+curl http://localhost:8080
+docker run -d --name my-redis --network task09-network --network-alias redis-db --restart unless-stopped redis:7-alpine
+docker ps
+docker create --name my-node --network task09-network node:24-alpine node -e "console.log('Node container started'); setInterval(() => console.log('Node task-09 alive'), 5000);"
+docker ps -a --filter name=my-node
+docker start my-node
+docker ps
+docker exec my-nginx nginx -v:
+    nginx version: nginx/1.31.
+docker exec my-redis redis-cli ping:
+    PONG
+docker exec my-redis redis-cli set task09 docker
+docker exec my-redis redis-cli get task09
+docker exec my-node node -v:
+    v24.18.1
+echo "Hello from host" > hello.txt
+docker cp hello.txt my-nginx:/tmp/hello.txt
+docker exec my-nginx cat /tmp/hello.txt
+docker cp my-nginx:/etc/nginx/nginx.conf ./nginx-from-container.conf
+ls -l nginx-from-container.conf
+docker stats
+docker stats --no-stream
+docker stats --no-stream my-nginx my-redis my-node
+docker logs my-nginx
+docker inspect my-nginx
+docker volume create task09-volume
+docker volume ls
+docker volume inspect task09-volume
+docker run -d --name nginx -p 8080:80 nginx
+docker exec my-nginx  sh -c "echo 'Persistent volume test' > /usr/share/nginx/html/task09.txt"
+docker exec my-nginx cat /usr/share/nginx/html/task09.txt
+docker run --rm -v task09-volume:/usr/share/nginx/html nginx:alpine
+docker network ls
+docker network inspect task09-network
+docker exec my-redis redis-cli -h redis-db ping
+docker exec my-node node -e "require('dns').lookup('redis-db', (err, address) => console.log(err ? err.message : address));"
+docker exec my-node node -e "const net = require('net'); const socket = net.connect(6379, 'redis-db', () => { console.log('TCP connection to redis-db:6379 succeeded'); socket.end(); }); socket.on('error', (err) => console.error('TCP error:', err.message));"
+docker system df:
+    TYPE            TOTAL     ACTIVE    SIZE      RECLAIMABLE
+    Images          20        6         4.401GB   3.648GB (82%)
+    Containers      7         3         3.468kB   2.244kB (64%)
+    Local Volumes   9         2         757.6MB   757.6MB (99%)
+    Build Cache     67        0         174.8MB   59.64MB
+docker logs my-nginx
+docker stop my-nginx
+docker stop my-redis my-node
+docker ps -q | ForEach-Object { docker stop $_ }
+docker rm my-nginx my-redis my-node
+docker container prune -f
+docker volume rm task09-volume
+docker network rm task09-network
+docker rmi nginx:alpine my-nginx:v1 redis:7-alpine node:24-alpine
+docker system prune -f
+docker system prune -a -f --volumes
+docker system df:
+    TYPE            TOTAL     ACTIVE    SIZE      RECLAIMABLE
+    Images          0         0         0B        0B
+    Containers      0         0         0B        0B
+    Local Volumes   0         0         0B        0B
+    Build Cache     0         0         0B        0B

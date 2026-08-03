@@ -1,0 +1,31 @@
+Measure-Command { docker build -f Dockerfile.single -t my-ts-app:single . } | Select-Object TotalSeconds:
+TotalSeconds
+------------
+  82,8064281
+
+docker run -d --name ts-app-single -p 3000:3000 my-ts-app:single
+curl http://localhost:3000
+docker logs ts-app-single:
+    Express server listening on port 3000
+docker stop ts-app-single
+docker rm ts-app-single
+
+Measure-Command { docker build -f Dockerfile.multi -t my-ts-app:multi . } | Select-Object TotalSeconds:
+TotalSeconds
+------------
+   9,2363975
+
+docker run -d --name ts-app-multi -p 3000:3000 my-ts-app:multi
+curl http://localhost:3000
+docker logs ts-app-multi:
+    Express server listening on port 3000
+docker stop ts-app-multi
+docker rm ts-app-multi
+
+docker run --rm my-ts-app:multi ls -la /app
+docker images:
+    my-ts-app:multi                   a8810269e8ef        170MB             0B
+    my-ts-app:single                  70d54619140a        1.2GB             0B
+
+
+Measure-Command { docker build --no-cache -f Dockerfile.multi -t my-ts-app:multi . } | Select-Object TotalSeconds

@@ -1,0 +1,80 @@
+docker network create app-network
+docker network create --driver bridge --subnet 10.50.0.0/24 --gateway 10.50.0.1 subnet-network
+docker network inspect app-network subnet-network
+docker pull alpine
+docker run -d --name net-a --network app-network alpine sleep 3600
+docker run -d --name net-b --network app-network alpine sleep 3600
+docker exec net-a getent hosts net-b:
+    172.18.0.3        net-b  net-b
+docker exec net-a ping -c 3 net-b:
+    PING net-b (172.18.0.3): 56 data bytes
+    64 bytes from 172.18.0.3: seq=0 ttl=64 time=1.243 ms
+    64 bytes from 172.18.0.3: seq=1 ttl=64 time=0.127 ms
+    64 bytes from 172.18.0.3: seq=2 ttl=64 time=0.073 ms
+
+    --- net-b ping statistics ---
+    3 packets transmitted, 3 packets received, 0% packet loss
+    round-trip min/avg/max = 0.073/0.481/1.243 ms
+docker run -d --name subnet-a --network subnet-network alpine sleep 3600
+docker inspect --format "{{.Name}} {{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}" subnet-a subnet-b:
+    /subnet-a 10.50.0.2
+    /subnet-b 10.50.0.3
+docker exec subnet-a ping -c 3 subnet-b
+docker volume create mongo-data
+docker volume inspect mongo-data
+docker run -d --name mongo --network app-network --network-alias mongo -p 27017:27017 -v mongo-data:/data/db --restart unless-stopped mongo:7
+docker exec mongo mongosh --quiet --eval "db.adminCommand('ping')"
+docker run -d --name mongo-express --network app-network -p 8081:8081 -e ME_CONFIG_MONGODB_SERVER=mongo -e ME_CONFIG_MONGODB_PORT=27017 -e ME_CONFIG_MONGODB_ENABLE_ADMIN=true -e ME_CONFIG_BASICAUTH_USERNAME=admin -e ME_CONFIG_BASICAUTH_PASSWORD=adminpass --restart unless-stopped mongo-express
+docker logs mongo-express
+FROM node:24-alpine
+
+WORKDIR /app
+
+COPY package.json ./
+
+RUN npm install --omit=dev --no-audit --no-fund
+
+COPY app.js ./
+
+EXPOSE 3000
+
+CMD ["node", "app.js"]
+
+docker run -d --name task-app --network app-network -p 3000:3000 -e MONGO_URL=mongodb://mongo:27017 --restart unless-stopped task10-app
+curl http://localhost:3000/data
+docker exec task-app node -e "require('dns').lookup('mongo', (err, address) => console.log(err ? err.message : address));"
+docker exec mongo-express getent hosts mongo
+docker rm -f task-app
+docker run -d --name task-app --network app-network -p 3000:3000 -e MONGO_URL=mongodb://mongo:27017 -v "$(pwd)/app/app.js:/app/app.js:ro" --tmpfs /app/tmp --restart unless-stopped task10-app
+docker inspect task-app --format "{{json .Mounts}}"
+docker inspect task-app --format "{{json .HostConfig.Tmpfs}}"
+docker exec mongo mongosh --quiet taskdb --eval "db.items.find().toArray()"
+docker stop mongo
+docker start mongo
+docker exec mongo mongosh --quiet taskdb --eval "db.items.find().toArray()":
+    [
+    {
+        _id: ObjectId('6a70e57aea913aeb56bcdc2d'),
+        name: 'item-1785783674634',
+        createdAt: ISODate('2026-08-03T19:01:14.634Z')
+    }
+    ]
+docker exec task-app head -n 5 /app/app.js
+docker restart task-app
+docker exec task-app sh -c "echo 'temporary data' > /app/tmp/test.txt"
+docker exec task-app cat /app/tmp/test.txt
+docker restart task-app
+docker exec task-app cat /app/tmp/test.txt:
+    cat: can't open '/app/tmp/test.txt': No such file or directory
+docker network create isolated-net-1
+docker network create isolated-net-2
+docker run -d --name isolated-a --network isolated-net-1 alpine sleep 3600 && docker run -d --name isolated-b --network isolated-net-2 alpine sleep 3600 && docker run -d --name isolated-c --network isolated-net-1 alpine sleep 3600
+docker exec isolated-a ping -c 3 isolated-c
+docker exec isolated-a ping -c 3 isolated-b:
+    ping: bad address 'isolated-b'
+docker network connect isolated-net-2 isolated-a
+docker ps
+docker stop mongo mongo-express task-app net-a net-b subnet-a subnet-b isolated-a isolated-b isolated-c
+docker network prune -f
+docker volume rm mongo-data
+docker volume prune -f

@@ -1,0 +1,22 @@
+git switch -c feature/update-readme-v1 main
+git add README.md
+git commit -m "Change README title to My Awesome Project v1"
+git switch main
+git switch -c feature/update-readme-v2 main
+git add README.md
+git commit -m "Change README title to My Super Project v2"
+git switch main
+git merge feature/update-readme-v1
+git merge feature/update-readme-v2:
+    Auto-merging README.md
+    CONFLICT (content): Merge conflict in README.md
+    Automatic merge failed; fix conflicts and then commit the result.
+git add README.md
+git commit -m "Merge feature/update-readme-v2 and combine README titles"
+git log --oneline --graph --decorate --all:
+    *   a6c7f8b (HEAD -> main) Merge feature/update-readme-v2 and combine README titles
+    |\
+    | * 7854cf5 (feature/update-readme-v2) Change README title to My Super Project v2
+    * | 2986698 (feature/update-readme-v1) Change README title to My Awesome Project v1
+    |/
+    * af98132 add task3

@@ -1,0 +1,32 @@
+git switch -c feature/add-scripts
+git branch
+git status
+git diff
+git add package.json
+git log --oneline
+output:
+bcee294 (HEAD -> feature/add-scripts) Add scripts section to package.json
+1cd92a5 (main) Add README and package.json
+d14e756 Add .gitignore
+git log --oneline main..feature/add-scripts
+output:
+bcee294 (feature/add-scripts) Add scripts section to package.json
+git branch
+output:
+* feature/add-dependencies
+  feature/add-scripts
+  main
+git switch main
+output:
+Updating 1cd92a5..bcee294
+Fast-forward
+ package.json | 5 +++++
+ 1 file changed, 5 insertions(+)
+git branch -d feature/add-scripts: Deleted branch feature/add-scripts (was bcee294).
+git branch:
+  feature/add-dependencies
+* main
+git log --oneline:
+bcee294 (HEAD -> main) Add scripts section to package.json
+1cd92a5 (feature/add-dependencies) Add README and package.json
+d14e756 Add .gitignore
